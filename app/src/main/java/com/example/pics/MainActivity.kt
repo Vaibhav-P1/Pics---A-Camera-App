@@ -2,18 +2,26 @@
 
 package com.example.pics
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresPermission
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
+import androidx.camera.video.FileOutputOptions
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoRecordEvent
 import androidx.camera.view.LifecycleCameraController
+import androidx.camera.view.video.AudioConfig
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -25,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,9 +55,11 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pics.ui.theme.PicsTheme
 import kotlinx.coroutines.launch
+import java.io.File
 
 
 class MainActivity : ComponentActivity() {
+    private var recording: Recording? = null //For recording
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (!hasRequiredPermissions()) {
@@ -146,6 +157,19 @@ class MainActivity : ComponentActivity() {
 
                                 )
                             }
+
+                            IconButton(
+                                onClick = {
+
+                                    recordVideo(controller)
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Videocam,
+                                    contentDescription = "Record Video"
+
+                                )
+                            }
                         }
                     }
 
@@ -155,11 +179,61 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    //To Record the video
+
+
+    @SuppressLint("MissingPermission")
+    private fun recordVideo(controller: LifecycleCameraController){
+        if(recording != null){      //If recording is already on then stop
+            recording?.stop()
+            recording = null
+            return
+        }
+
+        if(!hasRequiredPermissions()){
+               return
+        }
+        val outputFile = File(filesDir,"my-recording.mp4")
+        recording = controller.startRecording(
+            FileOutputOptions.Builder(outputFile).build(),
+            AudioConfig.create(true),
+            ContextCompat.getMainExecutor(applicationContext),
+        ){ event ->
+            when(event) {
+                is VideoRecordEvent.Finalize -> {
+                    if(event.hasError()){
+                        recording?.close()
+                        recording = null
+
+                        Toast.makeText(
+                            applicationContext,
+                            "Video capture failed",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    } else{
+                        Toast.makeText(
+                            applicationContext,
+                            "Video capture succeeded",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                    }
+
+                    }
+                }
+            }
+        }
+
+
+
     //To take Photo
     private fun takePhoto(
         controller: LifecycleCameraController,
         onPhotoTaken: (Bitmap) -> Unit
     ){
+        if (!hasRequiredPermissions()){
+            return
+        }
         controller.takePicture(
             ContextCompat.getMainExecutor(applicationContext),
             object : ImageCapture.OnImageCapturedCallback() {
