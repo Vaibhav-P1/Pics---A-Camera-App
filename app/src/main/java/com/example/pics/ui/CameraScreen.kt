@@ -18,6 +18,12 @@ import com.example.pics.utils.hasRequiredPermissions
 import com.example.pics.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 import android.annotation.SuppressLint
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,19 +96,28 @@ fun CameraScreen(
                     )
                 }
 
-                // 📸 Take Photo
-                IconButton(
-                    onClick = {
-                        CameraActions.takePhoto(
-                            context = context,
-                            controller = controller,
-                            onPhotoTaken = viewModel::onTakePhoto
-                        )
-                    }
+                //  Take Photo
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(90.dp) 
+                        .border(4.dp, Color.White, CircleShape) 
+                        .padding(10.dp) 
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.8f)) 
+                        .clickable { 
+                            CameraActions.takePhoto(
+                                context = context,
+                                controller = controller,
+                                onPhotoTaken = viewModel::onTakePhoto
+                            )
+                        }
                 ) {
                     Icon(
                         imageVector = Icons.Default.PhotoCamera,
-                        contentDescription = "Take Photo"
+                        contentDescription = "Take Photo",
+                        tint = Color.Black,
+                        modifier = Modifier.size(40.dp)
                     )
                 }
 

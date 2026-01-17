@@ -17,14 +17,48 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
+// New imports you added
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun PhotoBottomSheet(bitmaps: List<Bitmap>) {
     if (bitmaps.isEmpty()) {
-        Box(Modifier.padding(16.dp), contentAlignment = Alignment.Center) {
-            Text("No photos yet. Capture some!")
+        // --- NEW EMPTY STATE UI ---
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Image,
+                contentDescription = null,
+                modifier = Modifier.size(64.dp),
+                tint = Color.LightGray
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "No photos yet",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "Capture some memories to see them here!",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
         }
     } else {
+        // --- EXISTING GRID UI ---
         LazyVerticalStaggeredGrid(
             columns = StaggeredGridCells.Fixed(2),
             contentPadding = PaddingValues(16.dp),
@@ -40,7 +74,4 @@ fun PhotoBottomSheet(bitmaps: List<Bitmap>) {
             }
         }
     }
-
-    // TODO (GOOD FIRST ISSUE):
-    // Add click-to-preview full screen image
 }
