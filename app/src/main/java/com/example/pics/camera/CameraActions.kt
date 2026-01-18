@@ -56,9 +56,12 @@ object CameraActions {
             return
         }
 
+        val format = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault())
+        val timestamp = format.format(java.util.Date())
+        
         val outputFile = File(
             context.filesDir,
-            "video_${System.currentTimeMillis()}.mp4"
+            "VID_$timestamp.mp4"
         )
 
         recording = controller.startRecording(
