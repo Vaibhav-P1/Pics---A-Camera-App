@@ -147,7 +147,6 @@ fun CameraScreen(
                 }
 
                 // 🎥 Record Video
-                // 磁 Record Video
                 @SuppressLint("MissingPermission")
                 IconButton(
                     onClick = {
@@ -169,9 +168,9 @@ fun CameraScreen(
                     }
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Videocam,
+                        imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Videocam,
                         contentDescription = "Record Video",
-                        tint = LocalContentColor.current
+                        tint = if (isRecording) Color.Red else LocalContentColor.current
                     )
                 }
 
