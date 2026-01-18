@@ -169,9 +169,9 @@ fun CameraScreen(
                     }
                 ) {
                     Icon(
-                        imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Videocam,
+                        imageVector = Icons.Default.Videocam,
                         contentDescription = "Record Video",
-                        tint = if (isRecording) Color.Red else LocalContentColor.current
+                        tint = LocalContentColor.current
                     )
                 }
 
