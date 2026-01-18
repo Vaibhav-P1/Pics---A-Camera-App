@@ -1,7 +1,6 @@
 package com.example.pics.ui
 
-import android.graphics.Bitmap
-import androidx.compose.foundation.Image
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 // New imports you added
 import androidx.compose.foundation.layout.Column
@@ -28,10 +26,12 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 
 @Composable
-fun PhotoBottomSheet(bitmaps: List<Bitmap>) {
-    if (bitmaps.isEmpty()) {
+fun PhotoBottomSheet(photoUris: List<Uri>) {
+    if (photoUris.isEmpty()) {
         // --- NEW EMPTY STATE UI ---
         Column(
             modifier = Modifier
@@ -65,11 +65,12 @@ fun PhotoBottomSheet(bitmaps: List<Bitmap>) {
             verticalItemSpacing = 12.dp,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            items(bitmaps) {
-                Image(
-                    bitmap = it.asImageBitmap(),
+            items(photoUris) { uri ->
+                AsyncImage(
+                    model = uri,
                     contentDescription = null,
-                    modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
                 )
             }
         }

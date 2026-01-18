@@ -32,16 +32,20 @@ fun CameraScreen(
     controller: LifecycleCameraController,
     viewModel: MainViewModel
 ) {
-    val bitmaps by viewModel.bitmaps.collectAsState()
+    val photoUris by viewModel.photoUris.collectAsState()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.loadPhotos(context.contentResolver)
+    }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
         sheetContent = {
-            PhotoBottomSheet(bitmaps)
+            PhotoBottomSheet(photoUris)
         }
     ) { padding ->
 
@@ -109,7 +113,9 @@ fun CameraScreen(
                             CameraActions.takePhoto(
                                 context = context,
                                 controller = controller,
-                                onPhotoTaken = viewModel::onTakePhoto
+                                onPhotoSaved = {
+                                    viewModel.loadPhotos(context.contentResolver)
+                                }
                             )
                         }
                 ) {

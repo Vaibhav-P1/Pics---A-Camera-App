@@ -34,10 +34,19 @@ fun requestCameraPermissions(activity: Activity) {
 /**
  * List of permissions required for camera and video recording.
  */
-private val CAMERAX_PERMISSIONS = arrayOf(
-    android.Manifest.permission.CAMERA,
-    android.Manifest.permission.RECORD_AUDIO
-)
+private val CAMERAX_PERMISSIONS = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+    arrayOf(
+        android.Manifest.permission.CAMERA,
+        android.Manifest.permission.RECORD_AUDIO,
+        android.Manifest.permission.READ_MEDIA_IMAGES
+    )
+} else {
+    arrayOf(
+        android.Manifest.permission.CAMERA,
+        android.Manifest.permission.RECORD_AUDIO,
+        android.Manifest.permission.READ_EXTERNAL_STORAGE
+    )
+}
 
 private const val CAMERA_PERMISSION_REQUEST_CODE = 1001
 
