@@ -36,6 +36,7 @@ fun CameraScreen(
     val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    var isRecording by remember { mutableStateOf(false) }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -56,6 +57,30 @@ fun CameraScreen(
                 controller = controller,
                 modifier = Modifier.fillMaxSize()
             )
+
+            if (isRecording) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 48.dp)
+                        .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .clip(CircleShape)
+                            .background(Color.Red)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "REC",
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            }
 
             // 🔄 Switch Camera
             IconButton(
@@ -122,10 +147,14 @@ fun CameraScreen(
                 }
 
                 // 🎥 Record Video
+                // 磁 Record Video
                 @SuppressLint("MissingPermission")
                 IconButton(
                     onClick = {
                         if (hasRequiredPermissions(context)) {
+                            // Toggle the recording state (UI)
+                            isRecording = !isRecording
+                            
                             CameraActions.toggleVideoRecording(
                                 context = context,
                                 controller = controller
@@ -140,8 +169,9 @@ fun CameraScreen(
                     }
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Videocam,
-                        contentDescription = "Record Video"
+                        imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Videocam,
+                        contentDescription = "Record Video",
+                        tint = if (isRecording) Color.Red else LocalContentColor.current
                     )
                 }
 
