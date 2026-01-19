@@ -22,13 +22,9 @@ import com.example.pics.utils.hasRequiredPermissions
 import com.example.pics.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 import android.annotation.SuppressLint
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,6 +41,8 @@ fun CameraScreen(
     val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    
+    // REMOVED local isRecording variable because it is now passed as a parameter above
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -66,7 +64,7 @@ fun CameraScreen(
                 modifier = Modifier.fillMaxSize()
             )
 
-            // 🔴 Recording Indicator
+            // 🔴 Recording Indicator (From Owner's Update)
             if (isRecording) {
                 Row(
                     modifier = Modifier
@@ -131,7 +129,7 @@ fun CameraScreen(
                     )
                 }
 
-                //  Take Photo
+                // 📸 Take Photo
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
