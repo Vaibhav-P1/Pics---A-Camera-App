@@ -1,18 +1,15 @@
 package com.example.pics.camera
 
-
-
 import android.Manifest
 import android.content.ContentValues
 import android.content.Context
-import android.graphics.Bitmap
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresPermission
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.ImageProxy
 import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.Recording
 import androidx.camera.video.VideoRecordEvent
@@ -24,7 +21,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 object CameraActions {
-
+    private const val TAG = "CameraActions"
     var recording: Recording? = null
 
     fun takePhoto(
@@ -69,7 +66,9 @@ object CameraActions {
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     fun toggleVideoRecording(
         context: Context,
-        controller: LifecycleCameraController
+        controller: LifecycleCameraController,
+        onRecordingStarted: () -> Unit,
+        onRecordingFinished: (File?) -> Unit
     ) {
         if (recording != null) {
             recording?.stop()
@@ -82,19 +81,43 @@ object CameraActions {
             "video_${System.currentTimeMillis()}.mp4"
         )
 
+        onRecordingStarted()
+        
         recording = controller.startRecording(
             FileOutputOptions.Builder(outputFile).build(),
-            AudioConfig.create(true),
+            AudioConfig.create(false), // Disabled audio for emulator compatibility
             ContextCompat.getMainExecutor(context)
         ) { event ->
             if (event is VideoRecordEvent.Finalize) {
-                Toast.makeText(
-                    context,
-                    if (event.hasError()) "Recording failed" else "Recording saved",
-                    Toast.LENGTH_SHORT
-                ).show()
+                val file = if (!event.hasError()) outputFile else null
+                onRecordingFinished(file)
+                
+                if (event.hasError()) {
+                    Log.e(TAG, "Video recording failed: Error code ${event.error}")
+                    
+                    val errorMsg = when (event.error) {
+                        VideoRecordEvent.Finalize.ERROR_INSUFFICIENT_STORAGE -> "Insufficient storage"
+                        VideoRecordEvent.Finalize.ERROR_FILE_SIZE_LIMIT_REACHED -> "File size limit reached"
+                        VideoRecordEvent.Finalize.ERROR_NO_VALID_DATA -> "No data (Mic issue?)"
+                        VideoRecordEvent.Finalize.ERROR_INVALID_OUTPUT_OPTIONS -> "Invalid output options"
+                        VideoRecordEvent.Finalize.ERROR_ENCODING_FAILED -> "Encoding failed"
+                        VideoRecordEvent.Finalize.ERROR_RECORDER_ERROR -> "Recorder error"
+                        else -> "Unknown error: ${event.error}"
+                    }
+                    Toast.makeText(context, "Recording failed: $errorMsg", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(context, "Recording saved", Toast.LENGTH_SHORT).show()
+                }
             }
         }
+    }
+
+    fun pauseVideoRecording() {
+        recording?.pause()
+    }
+
+    fun resumeVideoRecording() {
+        recording?.resume()
     }
 
     // TODO (GOOD FIRST ISSUE):

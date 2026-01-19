@@ -33,19 +33,21 @@ fun CameraScreen(
     viewModel: MainViewModel
 ) {
     val photoUris by viewModel.photoUris.collectAsState()
+    val videoFiles by viewModel.videoFiles.collectAsState()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    var isRecording by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        viewModel.loadPhotos(context.contentResolver)
+        viewModel.loadMedia(context)
     }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
         sheetContent = {
-            PhotoBottomSheet(photoUris)
+            PhotoBottomSheet(photoUris, videoFiles)
         }
     ) { padding ->
 
@@ -114,7 +116,7 @@ fun CameraScreen(
                                 context = context,
                                 controller = controller,
                                 onPhotoSaved = {
-                                    viewModel.loadPhotos(context.contentResolver)
+                                    viewModel.loadMedia(context)
                                 }
                             )
                         }
@@ -134,7 +136,16 @@ fun CameraScreen(
                         if (hasRequiredPermissions(context)) {
                             CameraActions.toggleVideoRecording(
                                 context = context,
-                                controller = controller
+                                controller = controller,
+                                onRecordingStarted = {
+                                    isRecording = true
+                                },
+                                onRecordingFinished = { file ->
+                                    isRecording = false
+                                    if (file != null) {
+                                        viewModel.loadMedia(context)
+                                    }
+                                }
                             )
                         } else {
                             Toast.makeText(
@@ -146,8 +157,9 @@ fun CameraScreen(
                     }
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Videocam,
-                        contentDescription = "Record Video"
+                        imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Videocam,
+                        contentDescription = if (isRecording) "Stop Recording" else "Record Video",
+                        tint = if (isRecording) Color.Red else Color.Black
                     )
                 }
 
