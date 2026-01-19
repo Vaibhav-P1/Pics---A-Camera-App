@@ -2,6 +2,7 @@ package com.example.pics.viewmodel
 
 import android.content.ContentResolver
 import android.content.ContentUris
+import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
@@ -11,13 +12,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class MainViewModel : ViewModel() {
 
     private val _photoUris = MutableStateFlow<List<Uri>>(emptyList())
     val photoUris = _photoUris.asStateFlow()
 
-    fun loadPhotos(contentResolver: ContentResolver) {
+    private val _videoFiles = MutableStateFlow<List<File>>(emptyList())
+    val videoFiles = _videoFiles.asStateFlow()
+
+    fun loadMedia(context: Context) {
+        loadPhotos(context.contentResolver)
+        loadVideos(context)
+    }
+
+    private fun loadPhotos(contentResolver: ContentResolver) {
         viewModelScope.launch {
             val loadedUris = withContext(Dispatchers.IO) {
                 val list = mutableListOf<Uri>()
@@ -46,6 +56,17 @@ class MainViewModel : ViewModel() {
                 list
             }
             _photoUris.value = loadedUris
+        }
+    }
+
+    private fun loadVideos(context: Context) {
+        viewModelScope.launch {
+            val videos = withContext(Dispatchers.IO) {
+                context.filesDir.listFiles { file ->
+                    file.extension == "mp4"
+                }?.toList() ?: emptyList()
+            }
+            _videoFiles.value = videos.sortedByDescending { it.lastModified() }
         }
     }
 }
