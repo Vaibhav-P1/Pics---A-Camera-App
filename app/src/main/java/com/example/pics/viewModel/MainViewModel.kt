@@ -1,12 +1,12 @@
 package com.example.pics.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import android.graphics.Bitmap
+import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
+class MainViewModel : ViewModel() {
     private val _photos = MutableStateFlow<List<File>>(emptyList())
     val photos = _photos.asStateFlow()
 
@@ -19,22 +19,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isPaused = MutableStateFlow(false)
     val isPaused = _isPaused.asStateFlow()
 
-    init {
-        loadMedia()
-    }
-
-    private fun loadMedia() {
-        val files = getApplication<Application>().filesDir.listFiles()
-        _photos.value = files?.filter { it.extension == "jpg" }?.sortedByDescending { it.lastModified() } ?: emptyList()
-        _videos.value = files?.filter { it.extension == "mp4" }?.sortedByDescending { it.lastModified() } ?: emptyList()
-    }
-
     fun onTakePhoto(file: File) {
-        _photos.value = listOf(file) + _photos.value
+        _photos.value = _photos.value + file
     }
 
     fun onVideoRecorded(file: File) {
-        _videos.value = listOf(file) + _videos.value
+        _videos.value = _videos.value + file
     }
 
     fun setRecording(recording: Boolean) {
