@@ -1,7 +1,7 @@
 package com.example.pics.camera
 
-
-
+import java.text.SimpleDateFormat
+import java.util.Locale
 import android.Manifest
 import android.content.Context
 import android.graphics.Bitmap
@@ -56,18 +56,18 @@ object CameraActions {
             return
         }
 
+        // 1. Correct Naming Convention
+        val fileName = "VID_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(System.currentTimeMillis()) + ".mp4"
         val outputFile = File(
             context.filesDir,
-            "video_${System.currentTimeMillis()}.mp4"
+            fileName
         )
 
         onRecordingStarted()
         
-        // Try recording without audio if audio fails, or just disable it for now on emulator
-        // For debugging purposes, we'll try with audio first
         recording = controller.startRecording(
             FileOutputOptions.Builder(outputFile).build(),
-            AudioConfig.create(false), // Disabled audio for emulator compatibility
+            AudioConfig.create(false),
             ContextCompat.getMainExecutor(context)
         ) { event ->
             if (event is VideoRecordEvent.Finalize) {
@@ -76,29 +76,13 @@ object CameraActions {
                 
                 if (event.hasError()) {
                     Log.e(TAG, "Video recording failed: Error code ${event.error}")
-                    
-                    // If it failed with NO_VALID_DATA, it might be the audio source on emulator
-                    if (event.error == VideoRecordEvent.Finalize.ERROR_NO_VALID_DATA) {
-                        Log.w(TAG, "No valid data received. This is common on emulators with audio enabled. Retrying without audio...")
-                        // We could automatically retry here, but for now let's just inform the user
-                    }
-
-                    val errorMsg = when (event.error) {
-                        VideoRecordEvent.Finalize.ERROR_INSUFFICIENT_STORAGE -> "Insufficient storage"
-                        VideoRecordEvent.Finalize.ERROR_FILE_SIZE_LIMIT_REACHED -> "File size limit reached"
-                        VideoRecordEvent.Finalize.ERROR_NO_VALID_DATA -> "No data (Mic issue?)"
-                        VideoRecordEvent.Finalize.ERROR_INVALID_OUTPUT_OPTIONS -> "Invalid output options"
-                        VideoRecordEvent.Finalize.ERROR_ENCODING_FAILED -> "Encoding failed"
-                        VideoRecordEvent.Finalize.ERROR_RECORDER_ERROR -> "Recorder error"
-                        else -> "Unknown error: ${event.error}"
-                    }
-                    Toast.makeText(context, "Recording failed: $errorMsg", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, "Recording failed", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(context, "Recording saved", Toast.LENGTH_SHORT).show()
                 }
             }
         }
-    }
+    } // <--- This brace was missing!
 
     fun pauseVideoRecording() {
         recording?.pause()
