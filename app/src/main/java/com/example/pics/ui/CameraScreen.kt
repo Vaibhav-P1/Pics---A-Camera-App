@@ -170,11 +170,10 @@ fun CameraScreen(
                     }
                 ) {
                     Icon(
-                        imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Videocam,
-                        contentDescription = if (isRecording) "Stop Recording" else "Record Video",
-                        tint = if (isRecording) Color.Red else Color.White
+                        imageVector = Icons.Default.Videocam, // CHANGED: Always show Camera icon
+                        contentDescription = "Record Video",
+                        tint = Color.White
                     )
-                }
 
                 // ⏸️ Pause / Resume Video (Only visible when recording)
                 if (isRecording) {
