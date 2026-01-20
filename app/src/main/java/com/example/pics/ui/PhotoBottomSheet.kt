@@ -1,8 +1,8 @@
 package com.example.pics.ui
 
-import android.graphics.Bitmap
-import androidx.compose.foundation.Image
+import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -10,43 +10,45 @@ import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import java.io.File
-
-import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import android.content.Intent
-import android.net.Uri
 import androidx.core.content.FileProvider
-import androidx.compose.ui.platform.LocalContext
+import coil.ImageLoader
+import coil.compose.AsyncImage
+import coil.decode.VideoFrameDecoder
+import java.io.File
 
 @Composable
 fun PhotoBottomSheet(
-    bitmaps: List<Bitmap>,
+    photos: List<File>,
     videos: List<File>
 ) {
-    var selectedBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var selectedFile by remember { mutableStateOf<File?>(null) }
     val context = LocalContext.current
+    
+    val imageLoader = remember {
+        ImageLoader.Builder(context)
+            .components {
+                add(VideoFrameDecoder.Factory())
+            }
+            .build()
+    }
 
     // Full-screen Photo Dialog
-    selectedBitmap?.let { bitmap ->
+    selectedFile?.let { file ->
         Dialog(
-            onDismissRequest = { selectedBitmap = null },
+            onDismissRequest = { selectedFile = null },
             properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Box(
@@ -54,13 +56,15 @@ fun PhotoBottomSheet(
                     .fillMaxSize()
                     .background(Color.Black)
             ) {
-                Image(
-                    bitmap = bitmap.asImageBitmap(),
+                AsyncImage(
+                    model = file,
+                    imageLoader = imageLoader,
                     contentDescription = "Full Screen Photo",
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
                 )
                 IconButton(
-                    onClick = { selectedBitmap = null },
+                    onClick = { selectedFile = null },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(16.dp)
@@ -76,31 +80,14 @@ fun PhotoBottomSheet(
         }
     }
 
-    if (bitmaps.isEmpty() && videos.isEmpty()) {
-        Column(
+    if (photos.isEmpty() && videos.isEmpty()) {
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Image,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = Color.LightGray
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "No photos or videos yet",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = "Capture some memories to see them here!",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
+            Text("No photos or videos yet. Capture some!")
         }
     } else {
         LazyVerticalStaggeredGrid(
@@ -111,13 +98,17 @@ fun PhotoBottomSheet(
             modifier = Modifier.fillMaxWidth()
         ) {
             // Show Photos
-            items(bitmaps) {
-                Image(
-                    bitmap = it.asImageBitmap(),
+            items(photos) { file ->
+                AsyncImage(
+                    model = file,
+                    imageLoader = imageLoader,
                     contentDescription = null,
                     modifier = Modifier
+                        .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { selectedBitmap = it }
+                        .background(Color.LightGray)
+                        .clickable { selectedFile = file },
+                    contentScale = ContentScale.Crop
                 )
             }
 
@@ -146,18 +137,44 @@ fun PhotoBottomSheet(
                         },
                     contentAlignment = Alignment.Center
                 ) {
+                    AsyncImage(
+                        model = videoFile,
+                        imageLoader = imageLoader,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    
+                    // Dark overlay
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f))
+                    )
+                    
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.PlayCircle,
-                            contentDescription = "Video",
-                            tint = Color.White,
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.Black.copy(alpha = 0.5f),
                             modifier = Modifier.size(48.dp)
-                        )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PlayCircle,
+                                contentDescription = "Video",
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .padding(4.dp)
+                                    .fillMaxSize()
+                            )
+                        }
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "Video",
                             color = Color.White,
-                            style = MaterialTheme.typography.labelSmall
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier
+                                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 4.dp, vertical = 2.dp)
                         )
                     }
                 }

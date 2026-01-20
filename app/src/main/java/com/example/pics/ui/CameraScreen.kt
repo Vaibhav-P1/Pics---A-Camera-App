@@ -22,12 +22,6 @@ import com.example.pics.utils.hasRequiredPermissions
 import com.example.pics.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 import android.annotation.SuppressLint
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,9 +32,10 @@ fun CameraScreen(
     isRecording: Boolean,
     isPaused: Boolean,
     onRecordingToggle: () -> Unit,
-    onPauseResumeToggle: () -> Unit
+    onPauseResumeToggle: () -> Unit,
+    onOpenFullGallery: () -> Unit
 ) {
-    val bitmaps by viewModel.bitmaps.collectAsState()
+    val photos by viewModel.photos.collectAsState()
     val videos by viewModel.videos.collectAsState()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
@@ -50,7 +45,7 @@ fun CameraScreen(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
         sheetContent = {
-            PhotoBottomSheet(bitmaps, videos)
+            PhotoBottomSheet(photos, videos)
         }
     ) { padding ->
 
@@ -117,42 +112,29 @@ fun CameraScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                // 📂 Open Gallery (Bottom Sheet)
+                // 📂 Open Full Gallery
                 IconButton(
-                    onClick = {
-                        scope.launch {
-                            scaffoldState.bottomSheetState.expand()
-                        }
-                    }
+                    onClick = onOpenFullGallery
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Photo,
-                        contentDescription = "Open Gallery"
+                        imageVector = Icons.Default.PhotoLibrary,
+                        contentDescription = "Open Full Gallery"
                     )
                 }
 
-                //  Take Photo
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(90.dp) 
-                        .border(4.dp, Color.White, CircleShape) 
-                        .padding(10.dp) 
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.8f)) 
-                        .clickable { 
-                            CameraActions.takePhoto(
-                                context = context,
-                                controller = controller,
-                                onPhotoTaken = viewModel::onTakePhoto
-                            )
-                        }
+                // 📸 Take Photo
+                IconButton(
+                    onClick = {
+                        CameraActions.takePhoto(
+                            context = context,
+                            controller = controller,
+                            onPhotoTaken = viewModel::onTakePhoto
+                        )
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.Default.PhotoCamera,
-                        contentDescription = "Take Photo",
-                        tint = Color.Black,
-                        modifier = Modifier.size(40.dp)
+                        contentDescription = "Take Photo"
                     )
                 }
 

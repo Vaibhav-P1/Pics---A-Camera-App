@@ -26,17 +26,25 @@ object CameraActions {
     fun takePhoto(
         context: Context,
         controller: LifecycleCameraController,
-        onPhotoTaken: (Bitmap) -> Unit
+        onPhotoTaken: (File) -> Unit
     ) {
+        val outputFile = File(
+            context.filesDir,
+            "photo_${System.currentTimeMillis()}.jpg"
+        )
+
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(outputFile).build()
+
         controller.takePicture(
+            outputOptions,
             ContextCompat.getMainExecutor(context),
-            object : ImageCapture.OnImageCapturedCallback() {
-                override fun onCaptureSuccess(image: ImageProxy) {
-                    onPhotoTaken(image.toBitmap())
-                    image.close()
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                    onPhotoTaken(outputFile)
                 }
 
                 override fun onError(exception: ImageCaptureException) {
+                    Log.e(TAG, "Failed to save photo", exception)
                     Toast.makeText(context, "Failed to capture photo", Toast.LENGTH_SHORT).show()
                 }
             }
