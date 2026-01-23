@@ -61,10 +61,10 @@ class MainActivity : ComponentActivity() {
                                 context = this,
                                 controller = cameraController,
                                 onRecordingStarted = { viewModel.setRecording(true) },
-                                onRecordingFinished = { file ->
+                                onRecordingFinished = { uri ->
                                     viewModel.setRecording(false)
-                                    if (file != null) {
-                                        viewModel.onVideoRecorded(file)
+                                    if (uri != null) {
+                                        viewModel.onVideoRecorded(uri)
                                     }
                                 }
                             )

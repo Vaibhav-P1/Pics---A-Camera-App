@@ -160,6 +160,7 @@ fun CameraScreen(
                         // 🎨 Dynamic Color: Red when recording, White when stopped
                         tint = if (isRecording) Color.Red else Color.White
                     )
+                }
 
                 // ⏸️ Pause / Resume Video (Only visible when recording)
                 if (isRecording) {

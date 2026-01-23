@@ -1,6 +1,7 @@
 package com.example.pics.ui
 
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,7 +25,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.FileProvider
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.VideoFrameDecoder
@@ -43,7 +43,7 @@ fun GalleryScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("All", "Photos", "Videos")
     
-    var selectedFile by remember { mutableStateOf<File?>(null) }
+    var selectedMedia by remember { mutableStateOf<MainViewModel.Media?>(null) }
     val context = LocalContext.current
     
     val imageLoader = remember {
@@ -80,7 +80,7 @@ fun GalleryScreen(
             val filteredMedia = when (selectedTab) {
                 1 -> photos
                 2 -> videos
-                else -> (photos + videos).sortedByDescending { it.lastModified() }
+                else -> (photos + videos).sortedByDescending { it.dateAdded }
             }
 
             if (filteredMedia.isEmpty()) {
@@ -96,15 +96,15 @@ fun GalleryScreen(
                     contentPadding = PaddingValues(4.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(filteredMedia) { file ->
+                    items(filteredMedia) { media ->
                         MediaItem(
-                            file = file,
+                            media = media,
                             imageLoader = imageLoader,
                             onClick = {
-                                if (file.extension == "mp4") {
-                                    playVideo(context, file)
+                                if (media.isVideo) {
+                                    playVideo(context, media.uri)
                                 } else {
-                                    selectedFile = file
+                                    selectedMedia = media
                                 }
                             }
                         )
@@ -115,9 +115,9 @@ fun GalleryScreen(
     }
 
     // Full-screen Preview Dialog for Photos
-    selectedFile?.let { file ->
+    selectedMedia?.let { media ->
         Dialog(
-            onDismissRequest = { selectedFile = null },
+            onDismissRequest = { selectedMedia = null },
             properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Box(
@@ -126,14 +126,14 @@ fun GalleryScreen(
                     .background(Color.Black)
             ) {
                 AsyncImage(
-                    model = file,
+                    model = media.uri,
                     imageLoader = imageLoader,
                     contentDescription = "Full Screen Photo",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Fit
                 )
                 IconButton(
-                    onClick = { selectedFile = null },
+                    onClick = { selectedMedia = null },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(16.dp)
@@ -151,9 +151,7 @@ fun GalleryScreen(
 }
 
 @Composable
-fun MediaItem(file: File, imageLoader: ImageLoader, onClick: () -> Unit) {
-    val isVideo = file.extension == "mp4"
-    
+fun MediaItem(media: MainViewModel.Media, imageLoader: ImageLoader, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .padding(2.dp)
@@ -163,14 +161,14 @@ fun MediaItem(file: File, imageLoader: ImageLoader, onClick: () -> Unit) {
             .clickable(onClick = onClick)
     ) {
         AsyncImage(
-            model = file,
+            model = media.uri,
             imageLoader = imageLoader,
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
         
-        if (isVideo) {
+        if (media.isVideo) {
             // Dark overlay for video thumbnails to make the play icon pop
             Box(
                 modifier = Modifier
@@ -198,13 +196,8 @@ fun MediaItem(file: File, imageLoader: ImageLoader, onClick: () -> Unit) {
     }
 }
 
-private fun playVideo(context: android.content.Context, file: File) {
+private fun playVideo(context: android.content.Context, uri: Uri) {
     try {
-        val uri = FileProvider.getUriForFile(
-            context,
-            "${context.packageName}.fileprovider",
-            file
-        )
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, "video/mp4")
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
