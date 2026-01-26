@@ -1,6 +1,7 @@
 package com.example.pics.ui
 
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,18 +24,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.FileProvider
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.VideoFrameDecoder
+import com.example.pics.viewmodel.MainViewModel
 import java.io.File
 
 @Composable
 fun PhotoBottomSheet(
-    photos: List<File>,
-    videos: List<File>
+    photos: List<MainViewModel.Media>,
+    videos: List<MainViewModel.Media>
 ) {
-    var selectedFile by remember { mutableStateOf<File?>(null) }
+    var selectedMedia by remember { mutableStateOf<MainViewModel.Media?>(null) }
     val context = LocalContext.current
     
     val imageLoader = remember {
@@ -46,9 +47,9 @@ fun PhotoBottomSheet(
     }
 
     // Full-screen Photo Dialog
-    selectedFile?.let { file ->
+    selectedMedia?.let { media ->
         Dialog(
-            onDismissRequest = { selectedFile = null },
+            onDismissRequest = { selectedMedia = null },
             properties = DialogProperties(usePlatformDefaultWidth = false)
         ) {
             Box(
@@ -57,14 +58,14 @@ fun PhotoBottomSheet(
                     .background(Color.Black)
             ) {
                 AsyncImage(
-                    model = file,
+                    model = media.uri,
                     imageLoader = imageLoader,
                     contentDescription = "Full Screen Photo",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Fit
                 )
                 IconButton(
-                    onClick = { selectedFile = null },
+                    onClick = { selectedMedia = null },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(16.dp)
@@ -98,22 +99,22 @@ fun PhotoBottomSheet(
             modifier = Modifier.fillMaxWidth()
         ) {
             // Show Photos
-            items(photos) { file ->
+            items(photos) { media ->
                 AsyncImage(
-                    model = file,
+                    model = media.uri,
                     imageLoader = imageLoader,
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
                         .background(Color.LightGray)
-                        .clickable { selectedFile = file },
+                        .clickable { selectedMedia = media },
                     contentScale = ContentScale.Crop
                 )
             }
 
             // Show Videos
-            items(videos) { videoFile ->
+            items(videos) { media ->
                 Box(
                     modifier = Modifier
                         .aspectRatio(1f)
@@ -121,13 +122,8 @@ fun PhotoBottomSheet(
                         .background(Color.DarkGray)
                         .clickable {
                             try {
-                                val uri = FileProvider.getUriForFile(
-                                    context,
-                                    "${context.packageName}.fileprovider",
-                                    videoFile
-                                )
                                 val intent = Intent(Intent.ACTION_VIEW).apply {
-                                    setDataAndType(uri, "video/mp4")
+                                    setDataAndType(media.uri, "video/mp4")
                                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                 }
                                 context.startActivity(intent)
@@ -138,7 +134,7 @@ fun PhotoBottomSheet(
                     contentAlignment = Alignment.Center
                 ) {
                     AsyncImage(
-                        model = videoFile,
+                        model = media.uri,
                         imageLoader = imageLoader,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),

@@ -15,8 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.fiberManualRecord
-import androidx.compose.material.icons.filled.stop
+import androidx.compose.material.icons.filled.FiberManualRecord
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -77,7 +77,7 @@ fun CameraScreen(
                         isRecording = false
                         cameraController.stopRecording()
                     } else {
-                        // Start Recording (With the Naming Fix)
+                        // Start Recording
                         isRecording = true
                         
                         // Create unique filename
@@ -96,7 +96,7 @@ fun CameraScreen(
                         ).setContentValues(contentValues).build()
 
                         cameraController.startRecording(
-                            outputOptions, // <--- Correctly passing the options
+                            outputOptions,
                             ContextCompat.getMainExecutor(context),
                             Consumer { event ->
                                 if (event is VideoRecordEvent.Finalize) {
@@ -111,8 +111,9 @@ fun CameraScreen(
                     }
                 }
             ) {
+                // UI: Red Circle for Record, Black Square for Stop
                 Icon(
-                    imageVector = if (isRecording) Icons.Default.stop else Icons.Default.fiberManualRecord,
+                    imageVector = if (isRecording) Icons.Filled.Stop else Icons.Filled.FiberManualRecord,
                     contentDescription = if (isRecording) "Stop Recording" else "Start Recording",
                     tint = if (isRecording) Color.Black else Color.Red,
                     modifier = Modifier.size(64.dp)
