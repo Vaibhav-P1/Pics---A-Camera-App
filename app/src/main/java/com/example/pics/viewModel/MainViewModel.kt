@@ -8,6 +8,8 @@ import android.provider.MediaStore
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -33,8 +35,31 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isPaused = MutableStateFlow(false)
     val isPaused = _isPaused.asStateFlow()
 
+    private val _recordingTime = MutableStateFlow(0L)
+    val recordingTime = _recordingTime.asStateFlow()
+
+    private var timerJob: Job? = null
+
     init {
         loadMedia()
+    }
+
+    private fun startTimer() {
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            while (true) {
+                delay(1000)
+                if (!_isPaused.value) {
+                    _recordingTime.value += 1
+                }
+            }
+        }
+    }
+
+    private fun stopTimer() {
+        timerJob?.cancel()
+        timerJob = null
+        _recordingTime.value = 0
     }
 
     private fun loadMedia() {
@@ -119,8 +144,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setRecording(recording: Boolean) {
         _isRecording.value = recording
-        if (!recording) {
+        if (recording) {
+            startTimer()
+        } else {
             _isPaused.value = false
+            stopTimer()
         }
     }
 

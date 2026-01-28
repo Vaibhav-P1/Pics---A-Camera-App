@@ -3,6 +3,7 @@ package com.example.pics.ui
 import android.widget.Toast
 import androidx.camera.core.CameraSelector
 import androidx.camera.view.LifecycleCameraController
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -13,8 +14,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.example.pics.camera.CameraActions
 import com.example.pics.camera.CameraPreview
@@ -37,9 +40,21 @@ fun CameraScreen(
 ) {
     val photos by viewModel.photos.collectAsState()
     val videos by viewModel.videos.collectAsState()
+    val recordingTime by viewModel.recordingTime.collectAsState()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val infiniteTransition = rememberInfiniteTransition(label = "recording")
+    val alpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "alpha"
+    )
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -61,7 +76,7 @@ fun CameraScreen(
                 modifier = Modifier.fillMaxSize()
             )
 
-            // 🔴 Recording Indicator
+            // 🔴 Recording Indicator & Timer
             if (isRecording) {
                 Row(
                     modifier = Modifier
@@ -74,13 +89,16 @@ fun CameraScreen(
                     Box(
                         modifier = Modifier
                             .size(12.dp)
+                            .alpha(if (isPaused) 1f else alpha)
                             .background(if (isPaused) Color.Yellow else Color.Red, CircleShape)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (isPaused) "Paused" else "Recording",
+                        text = if (isPaused) "Paused (${formatTime(recordingTime)})" else formatTime(recordingTime),
                         color = Color.White,
-                        style = MaterialTheme.typography.labelLarge
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontFamily = FontFamily.Monospace
+                        )
                     )
                 }
             }
@@ -177,4 +195,10 @@ fun CameraScreen(
             }
         }
     }
+}
+
+private fun formatTime(seconds: Long): String {
+    val mins = seconds / 60
+    val secs = seconds % 60
+    return String.format("%02d:%02d", mins, secs)
 }
