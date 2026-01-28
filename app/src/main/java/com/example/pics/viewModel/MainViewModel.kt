@@ -29,6 +29,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _videos = MutableStateFlow<List<Media>>(emptyList())
     val videos = _videos.asStateFlow()
 
+    private val _selectedMedia = MutableStateFlow<Media?>(null)
+    val selectedMedia = _selectedMedia.asStateFlow()
+
     private val _isRecording = MutableStateFlow(false)
     val isRecording = _isRecording.asStateFlow()
 
@@ -135,11 +138,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun onTakePhoto(uri: Uri) {
         val newMedia = Media(uri, false, System.currentTimeMillis() / 1000)
         _photos.value = listOf(newMedia) + _photos.value
+        _selectedMedia.value = newMedia
     }
 
     fun onVideoRecorded(uri: Uri) {
         val newMedia = Media(uri, true, System.currentTimeMillis() / 1000)
         _videos.value = listOf(newMedia) + _videos.value
+        _selectedMedia.value = newMedia
     }
 
     fun setRecording(recording: Boolean) {
@@ -154,6 +159,30 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setPaused(paused: Boolean) {
         _isPaused.value = paused
+    }
+
+    fun setSelectedMedia(media: Media?) {
+        _selectedMedia.value = media
+    }
+
+    fun deleteMedia(media: Media) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    getApplication<Application>().contentResolver.delete(media.uri, null, null)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            if (media.isVideo) {
+                _videos.value = _videos.value.filter { it.uri != media.uri }
+            } else {
+                _photos.value = _photos.value.filter { it.uri != media.uri }
+            }
+            if (_selectedMedia.value?.uri == media.uri) {
+                _selectedMedia.value = null
+            }
+        }
     }
 
     // TODO: Persist images using Room or File storage

@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pics.camera.CameraActions
 import com.example.pics.ui.CameraScreen
 import com.example.pics.ui.GalleryScreen
+import com.example.pics.ui.PreviewScreen
 import com.example.pics.ui.theme.PicsTheme
 import com.example.pics.utils.hasRequiredPermissions
 import com.example.pics.utils.requestCameraPermissions
@@ -42,10 +43,17 @@ class MainActivity : ComponentActivity() {
                 val viewModel: MainViewModel = viewModel()
                 val isRecording by viewModel.isRecording.collectAsState()
                 val isPaused by viewModel.isPaused.collectAsState()
+                val selectedMedia by viewModel.selectedMedia.collectAsState()
 
                 var showGallery by remember { mutableStateOf(false) }
 
-                if (showGallery) {
+                if (selectedMedia != null) {
+                    PreviewScreen(
+                        media = selectedMedia!!,
+                        onBack = { viewModel.setSelectedMedia(null) },
+                        onDelete = { viewModel.deleteMedia(selectedMedia!!) }
+                    )
+                } else if (showGallery) {
                     GalleryScreen(
                         viewModel = viewModel,
                         onBack = { showGallery = false }

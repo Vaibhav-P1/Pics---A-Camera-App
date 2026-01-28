@@ -1,7 +1,5 @@
 package com.example.pics.ui
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,7 +10,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,13 +20,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.VideoFrameDecoder
 import com.example.pics.viewmodel.MainViewModel
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,7 +37,6 @@ fun GalleryScreen(
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("All", "Photos", "Videos")
     
-    var selectedMedia by remember { mutableStateOf<MainViewModel.Media?>(null) }
     val context = LocalContext.current
     
     val imageLoader = remember {
@@ -101,49 +94,10 @@ fun GalleryScreen(
                             media = media,
                             imageLoader = imageLoader,
                             onClick = {
-                                if (media.isVideo) {
-                                    playVideo(context, media.uri)
-                                } else {
-                                    selectedMedia = media
-                                }
+                                viewModel.setSelectedMedia(media)
                             }
                         )
                     }
-                }
-            }
-        }
-    }
-
-    // Full-screen Preview Dialog for Photos
-    selectedMedia?.let { media ->
-        Dialog(
-            onDismissRequest = { selectedMedia = null },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black)
-            ) {
-                AsyncImage(
-                    model = media.uri,
-                    imageLoader = imageLoader,
-                    contentDescription = "Full Screen Photo",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
-                IconButton(
-                    onClick = { selectedMedia = null },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
-                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Close",
-                        tint = Color.White
-                    )
                 }
             }
         }
@@ -196,14 +150,4 @@ fun MediaItem(media: MainViewModel.Media, imageLoader: ImageLoader, onClick: () 
     }
 }
 
-private fun playVideo(context: android.content.Context, uri: Uri) {
-    try {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "video/mp4")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        context.startActivity(intent)
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-}
+

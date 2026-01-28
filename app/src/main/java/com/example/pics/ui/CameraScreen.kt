@@ -60,7 +60,7 @@ fun CameraScreen(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
         sheetContent = {
-            PhotoBottomSheet(photos, videos)
+            PhotoBottomSheet(photos, videos, viewModel)
         }
     ) { padding ->
 
