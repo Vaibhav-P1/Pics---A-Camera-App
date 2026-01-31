@@ -55,12 +55,43 @@ fun CameraScreen(
         ),
         label = "alpha"
     )
+    
+    // Track if bottom sheet is expanded for animations
+    val isSheetExpanded by remember {
+        derivedStateOf {
+            scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded ||
+            scaffoldState.bottomSheetState.targetValue == SheetValue.Expanded
+        }
+    }
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
+        sheetDragHandle = {
+            // Animated drag handle
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(4.dp)
+                        .background(
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                            RoundedCornerShape(2.dp)
+                        )
+                )
+            }
+        },
         sheetContent = {
-            PhotoBottomSheet(photos, videos)
+            PhotoBottomSheet(
+                photos = photos,
+                videos = videos,
+                isVisible = isSheetExpanded
+            )
         }
     ) { padding ->
 
