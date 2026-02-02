@@ -38,6 +38,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isPaused = MutableStateFlow(false)
     val isPaused = _isPaused.asStateFlow()
 
+    private val _isFlashEnabled = MutableStateFlow(false)
+    val isFlashEnabled = _isFlashEnabled.asStateFlow()
+
     private val _recordingTime = MutableStateFlow(0L)
     val recordingTime = _recordingTime.asStateFlow()
 
@@ -159,6 +162,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setPaused(paused: Boolean) {
         _isPaused.value = paused
+    }
+
+    fun toggleFlash() {
+        _isFlashEnabled.value = !_isFlashEnabled.value
     }
 
     fun setSelectedMedia(media: Media?) {

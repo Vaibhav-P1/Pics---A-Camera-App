@@ -120,6 +120,15 @@ object CameraActions {
         recording?.resume()
     }
 
-    // TODO (GOOD FIRST ISSUE):
-    // Add flash toggle support
+    fun toggleFlash(
+        controller: LifecycleCameraController,
+        isEnabled: Boolean
+    ) {
+        controller.imageCaptureFlashMode = if (isEnabled) {
+            ImageCapture.FLASH_MODE_ON
+        } else {
+            ImageCapture.FLASH_MODE_OFF
+        }
+        controller.enableTorch(isEnabled)
+    }
 }

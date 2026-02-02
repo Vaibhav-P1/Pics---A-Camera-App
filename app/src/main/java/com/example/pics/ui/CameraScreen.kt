@@ -40,6 +40,7 @@ fun CameraScreen(
 ) {
     val photos by viewModel.photos.collectAsState()
     val videos by viewModel.videos.collectAsState()
+    val isFlashEnabled by viewModel.isFlashEnabled.collectAsState()
     val recordingTime by viewModel.recordingTime.collectAsState()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
@@ -112,11 +113,30 @@ fun CameraScreen(
                         else
                             CameraSelector.DEFAULT_BACK_CAMERA
                 },
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Cameraswitch,
                     contentDescription = "Switch Camera"
+                )
+            }
+
+            // ⚡ Flash Toggle
+            IconButton(
+                onClick = {
+                    viewModel.toggleFlash()
+                    CameraActions.toggleFlash(controller, !isFlashEnabled)
+                },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = if (isFlashEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff,
+                    contentDescription = "Toggle Flash",
+                    tint = if (isFlashEnabled) Color.Yellow else Color.White
                 )
             }
 
